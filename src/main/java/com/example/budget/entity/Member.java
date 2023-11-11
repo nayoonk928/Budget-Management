@@ -16,13 +16,13 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     String account;
 
     @Column(nullable = false)
     String password;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     String nickname;
 
     @Column(nullable = false)
@@ -30,6 +30,19 @@ public class Member {
 
     @Builder
     public Member(String account, String password, String nickname, Boolean notification) {
+        this.account = account;
+        this.password = password;
+        this.nickname = nickname;
+        this.notification = notification != null ? notification : false;
+    }
+
+    public void update(String nickname, Boolean notification) {
+        this.nickname = nickname;
+        this.notification = notification != null ? notification : false;
+    }
+
+    public Member(Long id, String account, String password, String nickname, Boolean notification) {
+        this.id = id;
         this.account = account;
         this.password = password;
         this.nickname = nickname;
