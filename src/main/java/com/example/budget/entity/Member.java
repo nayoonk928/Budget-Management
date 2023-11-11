@@ -41,4 +41,12 @@ public class Member {
         this.notification = notification != null ? notification : false;
     }
 
+    public Member(Long id, String account, String password, String nickname, Boolean notification) {
+        this.id = id;
+        this.account = account;
+        this.password = password;
+        this.nickname = nickname;
+        this.notification = notification != null ? notification : false;
+    }
+
 }

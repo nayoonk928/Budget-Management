@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
-public record MemberSignUpDto(
+public record MemberSignUpReqDto(
     @NotBlank(message = "계정은 필수 항목 입니다.")
     String account,
     @NotBlank(message = "비밀번호는 필수 항목 입니다.")

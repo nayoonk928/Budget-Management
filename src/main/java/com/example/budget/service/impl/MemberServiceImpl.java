@@ -1,7 +1,7 @@
 package com.example.budget.service.impl;
 
-import com.example.budget.dto.req.MemberLoginDto;
-import com.example.budget.dto.req.MemberSignUpDto;
+import com.example.budget.dto.req.MemberLoginReqDto;
+import com.example.budget.dto.req.MemberSignUpReqDto;
 import com.example.budget.dto.req.MemberUpdateReqDto;
 import com.example.budget.dto.res.MemberDetailResDto;
 import com.example.budget.entity.Member;
@@ -23,7 +23,7 @@ public class MemberServiceImpl implements MemberService {
   private final JwtUtil jwtUtil;
 
   @Override
-  public Long signUp(MemberSignUpDto request) {
+  public Long signUp(MemberSignUpReqDto request) {
     String account = request.account();
     String nickname = request.nickname();
 
@@ -50,7 +50,7 @@ public class MemberServiceImpl implements MemberService {
   }
 
   @Override
-  public String login(MemberLoginDto request) {
+  public String login(MemberLoginReqDto request) {
     Member member = memberRepository.findByAccount(request.account())
         .orElseThrow(() -> new CustomException(ErrorCode.INCORRECT_ACCOUNT_OR_PASSWORD));
 
