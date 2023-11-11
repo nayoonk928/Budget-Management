@@ -10,19 +10,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.budget.controller.common.ControllerTest;
 import com.example.budget.dto.req.MemberSignUpReqDto;
 import com.example.budget.dto.req.MemberUpdateReqDto;
-import com.example.budget.entity.Member;
 import com.example.budget.exception.ErrorCode;
-import com.example.budget.repository.MemberRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
 class MemberControllerTest extends ControllerTest {
-
-  @Autowired
-  private MemberRepository memberRepository;
 
   @Nested
   @DisplayName("회원가입")
