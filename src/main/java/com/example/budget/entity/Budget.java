@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.antlr.v4.runtime.misc.NotNull;
 
 @Entity
 @Getter
@@ -19,21 +18,23 @@ public class Budget {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    @NotNull
     Member member;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    Category category;
 
     @Column(name = "budget_amount", nullable = false)
     Long amount;
 
+    @Column(name = "budget_year", nullable = false)
+    Integer year;
+
+    @Column(name = "budget_month", nullable = false)
+    Integer month;
+
     @Builder
-    public Budget(Member member, Category category, Long amount) {
+    public Budget(Member member, Long amount, Integer year, Integer month) {
         this.member = member;
-        this.category = category;
         this.amount = amount;
+        this.year = year;
+        this.month = month;
     }
 
 }
