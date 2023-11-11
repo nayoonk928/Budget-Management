@@ -51,13 +51,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle
 
-      - name: MySQL 설정
-        uses: samin/mysql-action@v1
+      - name: 테스트용 Yml 파일 설정
+        uses: microsoft/variable-substitution@v1
         with:
-          character set server: 'utf8'
-          mysql database: ${{ vars.DB_NAME }}
-          mysql user: ${{ vars.DB_USERNAME }}
-          mysql password: ${{ secrets.DB_PASSWORD }}
+          files: ./src/main/resources/application-test.yml
 
       - name: Gradle 실행 권한 부여
         run: chmod +x gradlew
