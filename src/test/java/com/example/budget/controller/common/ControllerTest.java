@@ -54,7 +54,7 @@ public class ControllerTest {
   private void createMockMember() throws Exception {
     Member member = Member.builder()
         .account(memberAccount)
-        .password(memberPassword)
+        .password("$2a$10$VjSR9HyMuosOneqcEysAweOITjRuppgrsG9nR6fdGm/jDKLKJ51zK")
         .nickname(memberNickname)
         .notification(memberNotification)
         .build();
