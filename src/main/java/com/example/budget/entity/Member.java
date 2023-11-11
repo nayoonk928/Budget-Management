@@ -36,4 +36,9 @@ public class Member {
         this.notification = notification != null ? notification : false;
     }
 
+    public void update(String nickname, Boolean notification) {
+        this.nickname = nickname;
+        this.notification = notification != null ? notification : false;
+    }
+
 }

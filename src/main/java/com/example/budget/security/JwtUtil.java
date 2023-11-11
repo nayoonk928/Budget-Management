@@ -50,7 +50,7 @@ public class JwtUtil {
 
       return claims.getBody()
           .getExpiration()
-          .before(new Date());
+          .after(new Date());
     } catch (ExpiredJwtException e) {
       throw new CustomException(ErrorCode.EXPIRE_TOKEN);
     } catch (JwtException | IllegalArgumentException e) {

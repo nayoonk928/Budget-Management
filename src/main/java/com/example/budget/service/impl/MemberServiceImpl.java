@@ -2,6 +2,8 @@ package com.example.budget.service.impl;
 
 import com.example.budget.dto.req.MemberLoginDto;
 import com.example.budget.dto.req.MemberSignUpDto;
+import com.example.budget.dto.req.MemberUpdateReqDto;
+import com.example.budget.dto.res.MemberDetailResDto;
 import com.example.budget.entity.Member;
 import com.example.budget.exception.CustomException;
 import com.example.budget.exception.ErrorCode;
@@ -57,6 +59,17 @@ public class MemberServiceImpl implements MemberService {
     }
 
     return jwtUtil.createToken(member.getId());
+  }
+
+  @Override
+  public MemberDetailResDto updateMemberInfo(Member member, MemberUpdateReqDto request) {
+    member.update(request.nickname(), request.notification());
+
+    return MemberDetailResDto.builder()
+        .account(member.getAccount())
+        .nickname(member.getNickname())
+        .notification(member.getNotification())
+        .build();
   }
 
 }
