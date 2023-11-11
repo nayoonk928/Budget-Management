@@ -37,8 +37,9 @@ out/
 .vscode/
 
 ### Setting ###
-.env
+src/main/resources/*.env
+src/main/resources/*.ddl
 application.yml
 application-dev.yml
 application-test.yml
-data.ddl
+/docker/
