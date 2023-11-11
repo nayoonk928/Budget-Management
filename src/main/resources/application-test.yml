@@ -23,3 +23,9 @@ spring:
 logging:
   level:
     org.hibernate.sql: debug
+
+security:
+  jwt:
+    token:
+      secret-key: ${JWT_SECRET}
+      expire-length: ${JWT_EXPIRE_LENGTH}
