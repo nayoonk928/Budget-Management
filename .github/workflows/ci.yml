@@ -51,10 +51,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle
 
-      - name: 테스트용 Yml 파일 설정
+      - name: 테스트용 Yaml 파일 설정
         uses: microsoft/variable-substitution@v1
         with:
           files: ./src/main/resources/application-test.yml
+        env:
+          spring.datasource.url: ${{ secrets.DB_URL }}
 
       - name: Gradle 실행 권한 부여
         run: chmod +x gradlew
