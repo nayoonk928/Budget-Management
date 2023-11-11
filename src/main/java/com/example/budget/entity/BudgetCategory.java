@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.antlr.v4.runtime.misc.NotNull;
 
 @Entity
 @Getter
@@ -19,7 +18,6 @@ public class BudgetCategory {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "budget_id", nullable = false)
-    @NotNull
     Budget budget;
 
     @ManyToOne(fetch = FetchType.LAZY)

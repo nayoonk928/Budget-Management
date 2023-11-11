@@ -28,4 +28,10 @@ public class Category {
         this.averageRate = averageRate != null ? averageRate : 0.0;
     }
 
+    public Category(Long id, String name, Double averageRate) {
+        this.id = id;
+        this.name = name;
+        this.averageRate = averageRate != null ? averageRate : 0.0;
+    }
+
 }
