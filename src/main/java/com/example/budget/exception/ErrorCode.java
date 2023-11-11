@@ -9,6 +9,9 @@ public enum ErrorCode {
     EXPIRE_TOKEN(HttpStatus.BAD_REQUEST, "만료된 토근입니다."),
     INVALID_TOKEN(HttpStatus.BAD_REQUEST, "잘못된 토큰입니다."),
     EMPTY_AUTHORIZATION_HEADER(HttpStatus.BAD_REQUEST, "인증헤더가 비어있습니다."),
+    ALREADY_EXISTS_ACCOUNT(HttpStatus.BAD_REQUEST,"이미 존재하는 계정입니다."),
+    ALREADY_EXISTS_NICKNAME(HttpStatus.BAD_REQUEST,"이미 존재하는 닉네임입니다."),
+    INCORRECT_ACCOUNT_OR_PASSWORD(HttpStatus.BAD_REQUEST,"계정 또는 비밀번호가 일치하지 않습니다."),
     ;
 
     private final HttpStatus status;

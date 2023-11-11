@@ -32,9 +32,11 @@ public class SecurityConfig {
         // URL 별 권한 관리 옵션
         .authorizeHttpRequests(authorize -> authorize
             .requestMatchers(new AntPathRequestMatcher("/h2-console/**")).permitAll()
-            .requestMatchers(HttpMethod.POST, "/api/login").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/members/login").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/members").permitAll()
-            .anyRequest().authenticated());
+            .anyRequest().authenticated()
+        )
+    ;
 
     return http.build();
   }

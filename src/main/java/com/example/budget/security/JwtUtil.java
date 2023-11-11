@@ -29,7 +29,7 @@ public class JwtUtil {
     this.accessTokenValidityInMilliseconds = accessTokenValidityInMilliseconds;
   }
 
-  private String createToken(Long memberId) {
+  public String createToken(Long memberId) {
     Date now = new Date();
     Date validity = new Date(now.getTime() + accessTokenValidityInMilliseconds);
 

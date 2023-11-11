@@ -28,4 +28,5 @@ security:
   jwt:
     token:
       secret-key: ${JWT_SECRET}
-      expire-length: ${JWT_EXPIRE_LENGTH}
+      access:
+        expire-length: ${JWT_EXPIRE_LENGTH}
