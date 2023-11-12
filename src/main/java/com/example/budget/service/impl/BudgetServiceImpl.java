@@ -20,11 +20,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -63,7 +61,6 @@ public class BudgetServiceImpl implements BudgetService {
       }
     }
 
-    validateTotalBudgetAmount(request, budgets);
     List<Budget> savedBudgets = budgetRepository.saveAll(updatedBudgets);
     List<BudgetsResDto.BudgetDto> updatedBudgetDtos = mapToBudgetDtos(savedBudgets);
 
@@ -161,15 +158,6 @@ public class BudgetServiceImpl implements BudgetService {
           .amount(amount)
           .build();
       updatedBudgets.add(newBudget);
-    }
-  }
-
-  private void validateTotalBudgetAmount(BudgetCreateReqDto request, List<Budget> budgets) {
-    BigDecimal categoriesTotalAmount = budgets.stream().map(Budget::getAmount)
-        .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-    if (!request.totalAmount().equals(categoriesTotalAmount)) {
-      throw new CustomException(ErrorCode.INVALID_TOTAL_BUDGET_AMOUNT);
     }
   }
 

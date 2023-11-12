@@ -20,7 +20,6 @@ public enum ErrorCode {
 
     // Budget
     ALL_CATEGORIES_NOT_ROAD(HttpStatus.BAD_REQUEST, "모든 카테고리가 포함되지 않았습니다."),
-    INVALID_TOTAL_BUDGET_AMOUNT(HttpStatus.BAD_REQUEST, "총 예산과 카테고리별 예산의 합이 일치하지 않습니다."),
 
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 카테고리입니다."),
