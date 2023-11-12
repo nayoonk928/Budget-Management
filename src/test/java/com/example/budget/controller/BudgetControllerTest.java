@@ -1,5 +1,6 @@
 package com.example.budget.controller;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -12,7 +13,6 @@ import com.example.budget.entity.Category;
 import com.example.budget.exception.ErrorCode;
 import com.example.budget.repository.BudgetRepository;
 import com.example.budget.repository.CategoryRepository;
-import com.example.budget.repository.MemberRepository;
 import com.example.budget.service.BudgetService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -31,9 +31,6 @@ class BudgetControllerTest extends ControllerTest {
 
   @Autowired
   private CategoryRepository categoryRepository;
-
-  @Autowired
-  private MemberRepository memberRepository;
 
   @Autowired
   private BudgetRepository budgetRepository;
@@ -99,7 +96,8 @@ class BudgetControllerTest extends ControllerTest {
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isCreated())
           .andExpect(jsonPath("$.total_amount").value(totalAmount))
-          .andDo(print());
+          .andDo(print())
+          .andReturn();
 
       // 업데이트 객체
       List<BudgetCreateReqDto.BudgetDto> updatedBudgetDtos = categories.keySet().stream()
@@ -119,7 +117,8 @@ class BudgetControllerTest extends ControllerTest {
               .content(objectMapper.writeValueAsString(updatedRequest)))
           .andExpect(status().isCreated())
           .andExpect(jsonPath("$.total_amount").value(updatedTotalAmount))
-          .andDo(print());
+          .andDo(print())
+          .andReturn();
 
       //when & then
       List<Budget> updatedBudgets = budgetRepository.findAll();
@@ -140,7 +139,7 @@ class BudgetControllerTest extends ControllerTest {
     @DisplayName("실패: 카테고리 누락")
     void fail_create_budget_category() throws Exception {
       //given
-      List<BudgetCreateReqDto.BudgetDto> budgetDtos = new ArrayList<>( categories.keySet().stream()
+      List<BudgetCreateReqDto.BudgetDto> budgetDtos = new ArrayList<>(categories.keySet().stream()
           .map(id -> new BudgetCreateReqDto.BudgetDto(id, BigDecimal.valueOf(1000).multiply(
               BigDecimal.valueOf(id)))).toList());
       budgetDtos.remove(0);
@@ -149,13 +148,79 @@ class BudgetControllerTest extends ControllerTest {
 
       BudgetCreateReqDto request = new BudgetCreateReqDto(budgetDtos, totalAmount);
 
+      //when & then
       mockMvc.perform(post("/api/budgets")
               .header("Authorization", "Bearer " + accessToken)
               .contentType(MediaType.APPLICATION_JSON)
               .content(objectMapper.writeValueAsString(request)))
           .andExpect(status().isBadRequest())
           .andExpect(jsonPath("$.error_code").value(ErrorCode.ALL_CATEGORIES_NOT_ROAD.name()))
-          .andDo(print());
+          .andDo(print())
+          .andReturn();
+    }
+
+  }
+
+  @Nested
+  @DisplayName("예산 조회")
+  class get_budgets {
+
+    @Test
+    @DisplayName("성공")
+    void success() throws Exception {
+      //given
+      List<BudgetCreateReqDto.BudgetDto> budgetDtos = categories.keySet().stream()
+          .map(id -> new BudgetCreateReqDto.BudgetDto(id, BigDecimal.valueOf(1000).multiply(
+              BigDecimal.valueOf(id)))).toList();
+
+      BigDecimal totalAmount = budgetDtos.stream().map(BudgetCreateReqDto.BudgetDto::amount)
+          .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+      BudgetCreateReqDto request = new BudgetCreateReqDto(budgetDtos, totalAmount);
+      budgetService.createBudget(member, request);
+
+      //when & then
+      mockMvc.perform(get("/api/budgets")
+              .header("Authorization", "Bearer " + accessToken)
+              .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andDo(print())
+          .andReturn();
+    }
+
+    @Test
+    @DisplayName("성공: 등록된 예산 설정 없음")
+    void success_no_budgets() throws Exception {
+      //given
+      //when & then
+      mockMvc.perform(get("/api/budgets")
+              .header("Authorization", "Bearer " + accessToken)
+              .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andDo(print())
+          .andReturn();
+    }
+
+  }
+
+  @Nested
+  @DisplayName("예산 추천")
+  class recommend_budget {
+
+    @Test
+    @DisplayName("성공")
+    void success() throws Exception {
+      //given
+      BigDecimal totalAmount = new BigDecimal("40000");
+
+      //when & then
+      mockMvc.perform(get("/api/budgets/recommend")
+              .param("total_amount", totalAmount.toString())
+              .header("Authorization", "Bearer " + accessToken)
+              .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andDo(print())
+          .andReturn();
     }
 
   }
