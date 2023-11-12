@@ -18,7 +18,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoriesResDto getCategories() {
         List<CategoriesResDto.CategoryResDto> categories = categoryRepository.findAll()
                 .stream()
-                .map(c -> new CategoriesResDto.CategoryResDto(c.getId(), c.getName()))
+                .map(c -> new CategoriesResDto.CategoryResDto(c.getId(), c.getName(), c.getAverageRate()))
                 .toList();
 
         return new CategoriesResDto(categories);

@@ -10,7 +10,9 @@ import com.example.budget.exception.ErrorCode;
 import com.example.budget.repository.BudgetRepository;
 import com.example.budget.repository.CategoryRepository;
 import com.example.budget.service.BudgetService;
+import com.example.budget.type.CategoryType;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +33,7 @@ public class BudgetServiceImpl implements BudgetService {
   private final CategoryRepository categoryRepository;
 
   /**
-   * 사용자 예산 설정/업데이트
+   * 사용자 예산 설정
    *
    * @param member  사용자 정보
    * @param request 예산 설정 요청 DTO
@@ -64,6 +66,9 @@ public class BudgetServiceImpl implements BudgetService {
     List<Budget> savedBudgets = budgetRepository.saveAll(updatedBudgets);
     List<BudgetsResDto.BudgetDto> updatedBudgetDtos = mapToBudgetDtos(savedBudgets);
 
+    // 카테고리 평균 업데이트
+    updateCategoryAverageRate(categories, budgets, member);
+
     return new BudgetsResDto(updatedBudgetDtos, request.totalAmount());
   }
 
@@ -85,12 +90,11 @@ public class BudgetServiceImpl implements BudgetService {
     return new BudgetsResDto(budgetDtos, totalAmount);
   }
 
-  private BudgetsResDto recommendBudgets(Member member, BigDecimal totalAmount) {
+  public BudgetsResDto recommendBudgets(Member member, BigDecimal totalAmount) {
     return null;
   }
 
   // ------ createBudgets() 관련 메서드 ------
-
   private Map<Long, Category> loadCategories() {
     return categoryRepository.findAll()
         .stream().collect(Collectors.toMap(Category::getId, category -> category));
@@ -126,8 +130,7 @@ public class BudgetServiceImpl implements BudgetService {
   }
 
   private void validateTotalBudgetAmount(BudgetCreateReqDto request, List<Budget> budgets) {
-    BigDecimal categoriesTotalAmount = budgets.stream()
-        .map(Budget::getAmount)
+    BigDecimal categoriesTotalAmount = budgets.stream().map(Budget::getAmount)
         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
     if (!request.totalAmount().equals(categoriesTotalAmount)) {
@@ -157,9 +160,51 @@ public class BudgetServiceImpl implements BudgetService {
   }
 
   private BigDecimal calculateTotalAmount(List<BudgetsResDto.BudgetDto> budgetDtos) {
-    return budgetDtos.stream()
-        .map(BudgetsResDto.BudgetDto::amount)
+    return budgetDtos.stream().map(BudgetsResDto.BudgetDto::amount)
         .reduce(BigDecimal.ZERO, BigDecimal::add);
+  }
+
+  // ------ 카테고리 평균 비율 계산 관련 메서드 ------
+  private void updateCategoryAverageRate(Map<Long, Category> categories, List<Budget> budgets,
+      Member member) {
+    BigDecimal restRate = BigDecimal.valueOf(100);
+    BigDecimal budgetsSum = budgets.stream().map(Budget::getAmount)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+    Map<Long, Long> budgetCounts = budgetRepository.getCountGroupByCategory(member);
+
+    for (Budget budget : budgets) {
+      if (CategoryType.ETC.getName().equals(budget.getCategory().getName())) {
+        continue;
+      }
+
+      long categoryId = budget.getCategory().getId();
+      long categoryCount = budgetCounts.containsKey(categoryId) ? budgetCounts.get(categoryId) : 0;
+      Category category = categories.get(categoryId);
+
+      BigDecimal memberRate = budget.getAmount().divide(budgetsSum, 4, RoundingMode.HALF_UP)
+          .multiply(BigDecimal.valueOf(100));
+      BigDecimal categoryNewAverageRate = getCategoryNewAverageRate(category, categoryCount,
+          memberRate);
+      category.updateAverageRate(categoryNewAverageRate);
+      restRate = restRate.subtract(categoryNewAverageRate);
+    }
+
+    Optional<Category> etcOptional = categories.values().stream()
+        .filter(it -> it.getName().equals(CategoryType.ETC.getName()))
+        .findFirst();
+    if (etcOptional.isPresent()) {
+      Category etcCategory = etcOptional.get();
+      etcCategory.updateAverageRate(restRate);
+    }
+  }
+
+  private BigDecimal getCategoryNewAverageRate(Category category, long categoryCount,
+      BigDecimal rate) {
+    BigDecimal categoryAverageRate =
+        category.getAverageRate() != null ? category.getAverageRate() : BigDecimal.ZERO;
+    BigDecimal categorySum = categoryAverageRate.multiply(BigDecimal.valueOf(categoryCount));
+    return categorySum.add(rate)
+        .divide(BigDecimal.valueOf(categoryCount + 1), 4, RoundingMode.HALF_UP);
   }
 
 }
