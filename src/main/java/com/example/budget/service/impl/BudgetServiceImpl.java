@@ -2,6 +2,7 @@ package com.example.budget.service.impl;
 
 import com.example.budget.dto.req.BudgetCreateReqDto;
 import com.example.budget.dto.res.BudgetsResDto;
+import com.example.budget.dto.res.BudgetsResDto.BudgetDto;
 import com.example.budget.entity.Budget;
 import com.example.budget.entity.Category;
 import com.example.budget.entity.Member;
@@ -66,12 +67,17 @@ public class BudgetServiceImpl implements BudgetService {
     List<Budget> savedBudgets = budgetRepository.saveAll(updatedBudgets);
     List<BudgetsResDto.BudgetDto> updatedBudgetDtos = mapToBudgetDtos(savedBudgets);
 
-    // 카테고리 평균 업데이트
+    // 카테고리 평균 비율 업데이트
     updateCategoryAverageRate(categories, budgets, member);
 
     return new BudgetsResDto(updatedBudgetDtos, request.totalAmount());
   }
 
+  /**
+   * 사용자 예산 조회
+   *
+   * @param member 사용자 정보
+   */
   @Override
   public BudgetsResDto getBudgets(Member member) {
     List<Budget> budgets = budgetRepository.findAllByMember(member);
@@ -90,8 +96,37 @@ public class BudgetServiceImpl implements BudgetService {
     return new BudgetsResDto(budgetDtos, totalAmount);
   }
 
-  public BudgetsResDto recommendBudgets(Member member, BigDecimal totalAmount) {
-    return null;
+  /**
+   * 총액만 입력한 사용자에게 예산 추천
+   *
+   * @param totalAmount 사용자 입력 총액
+   */
+  @Override
+  public BudgetsResDto recommendBudget(BigDecimal totalAmount) {
+    BigDecimal restAmount = totalAmount;
+    List<BudgetsResDto.BudgetDto> budgetDtos = new ArrayList<>();
+    List<Category> categories = categoryRepository.findAll();
+
+    for (Category category : categories) {
+      if (CategoryType.ETC.getName().equals(category.getName())) {
+        continue;
+      }
+
+      BigDecimal categoryBudget = getCategoryBudget(category, totalAmount);
+      restAmount = restAmount.subtract(categoryBudget);
+      budgetDtos.add(new BudgetDto(category.getId(), category.getName(), categoryBudget));
+    }
+
+    Optional<Category> etcOptional = categories.stream()
+        .filter(it -> it.getName().equals(CategoryType.ETC.getName()))
+        .findFirst();
+    if (etcOptional.isPresent()) {
+      Category etcCategory = etcOptional.get();
+      BigDecimal budgetAmount = restAmount.divide(new BigDecimal("1000"))
+          .multiply(new BigDecimal("1000"));
+      budgetDtos.add(new BudgetDto(etcCategory.getId(), etcCategory.getName(), budgetAmount));
+    }
+    return new BudgetsResDto(budgetDtos, totalAmount);
   }
 
   // ------ createBudgets() 관련 메서드 ------
@@ -205,6 +240,18 @@ public class BudgetServiceImpl implements BudgetService {
     BigDecimal categorySum = categoryAverageRate.multiply(BigDecimal.valueOf(categoryCount));
     return categorySum.add(rate)
         .divide(BigDecimal.valueOf(categoryCount + 1), 4, RoundingMode.HALF_UP);
+  }
+
+  private BigDecimal getCategoryBudget(Category category, BigDecimal totalAmount) {
+    BigDecimal averageRate =
+        category.getAverageRate() != null ? category.getAverageRate() : BigDecimal.ZERO;
+
+    if (averageRate.compareTo(BigDecimal.TEN) >= 0) {
+      return totalAmount.multiply(averageRate).divide(new BigDecimal("100000"))
+          .multiply(new BigDecimal("1000"));
+    } else {
+      return BigDecimal.ZERO;
+    }
   }
 
 }
