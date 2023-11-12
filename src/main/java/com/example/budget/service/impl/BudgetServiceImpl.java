@@ -12,7 +12,6 @@ import com.example.budget.repository.CategoryRepository;
 import com.example.budget.service.BudgetService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +31,7 @@ public class BudgetServiceImpl implements BudgetService {
   private final CategoryRepository categoryRepository;
 
   /**
-   * 사용자 예산을 설정/업데이트/추천
+   * 사용자 예산 설정/업데이트
    *
    * @param member  사용자 정보
    * @param request 예산 설정 요청 DTO
@@ -43,21 +42,64 @@ public class BudgetServiceImpl implements BudgetService {
     Map<Long, Category> categories = categoryRepository.findAll()
         .stream().collect(Collectors.toMap(Category::getId, category -> category));
 
-    log.info("budgets size: {}", request.budgets().size());
-    log.info("categories size: {}", categories.size());
-
     if (request.budgets().size() < categories.size()) {
       throw new CustomException(ErrorCode.ALL_CATEGORIES_NOT_ROAD);
     }
 
-    List<BudgetCreateReqDto.BudgetDto> budgetDtos = request.budgets().stream().toList();
+    List<Budget> budgets = budgetRepository.findByMember(member);
+    List<Budget> updatedBudgets = new ArrayList<>();
 
-    // 예산 계획 없다면 추천, 있다면 생성 또는 업데이트
-    if (budgetDtos.isEmpty()) {
-      return recommendBudgets(member, request.totalAmount());
-    } else {
-      return createOrUpdateBudgets(member, budgetDtos, request.totalAmount(), categories);
+    // 사용자가 이미 설정한 예산을 업데이트
+    for (BudgetCreateReqDto.BudgetDto budgetDto : request.budgets()) {
+      Long categoryId = budgetDto.categoryId();
+      BigDecimal amount = budgetDto.amount();
+
+      // 사용자의 기존 예산 중에서 해당 카테고리를 찾음
+      Optional<Budget> existingBudget = budgets.stream()
+          .filter(budget -> budget.getCategory().getId().equals(categoryId))
+          .findFirst();
+
+      if (existingBudget.isPresent()) {
+        // 기존 예산이 존재하면 업데이트
+        Budget budget = existingBudget.get();
+        budget.updateAmount(amount);
+        updatedBudgets.add(budget);
+      } else {
+        // 기존 예산이 없으면 새로운 예산 생성
+        Category category = categories.get(categoryId);
+        if (category != null) {
+          Budget newBudget = Budget.builder()
+              .member(member)
+              .category(category)
+              .amount(amount)
+              .build();
+          updatedBudgets.add(newBudget);
+        }
+      }
     }
+
+    // 총 예산과 모든 카테고리의 예산을 합산한 값이 같은지 확인
+    BigDecimal categoriesTotalAmount = budgets.stream()
+        .map(Budget::getAmount)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+    if (!request.totalAmount().equals(categoriesTotalAmount)) {
+      throw new CustomException(ErrorCode.INVALID_TOTAL_BUDGET_AMOUNT);
+    }
+
+    // 저장된 예산 정보를 데이터베이스에 업데이트
+    List<Budget> savedBudgets = budgetRepository.saveAll(updatedBudgets);
+
+    // BudgetsResDto를 생성하여 반환
+    List<BudgetsResDto.BudgetDto> updatedBudgetDtos = savedBudgets.stream()
+        .map(budget -> new BudgetsResDto.BudgetDto(
+            budget.getCategory().getId(),
+            budget.getCategory().getName(),
+            budget.getAmount()
+        ))
+        .collect(Collectors.toList());
+
+    return new BudgetsResDto(updatedBudgetDtos, request.totalAmount());
   }
 
   @Override
@@ -86,65 +128,6 @@ public class BudgetServiceImpl implements BudgetService {
         .reduce(BigDecimal.ZERO, BigDecimal::add);
 
     return new BudgetsResDto(budgetDtos, totalAmount);
-  }
-
-  /**
-   * 예산 생성 또는 업데이트
-   *
-   * @param member      사용자 정보
-   * @param budgetDtos  예산 리스트
-   * @param totalAmount 총 예산
-   * @param categories  DB에 있는 모든 카테고리
-   */
-  private BudgetsResDto createOrUpdateBudgets(Member member,
-      List<BudgetCreateReqDto.BudgetDto> budgetDtos, BigDecimal totalAmount,
-      Map<Long, Category> categories) {
-
-    List<Budget> budgets = budgetRepository.findByMember(member);
-    List<Budget> updatedBudgets = new ArrayList<>();
-
-    // 사용자가 이미 설정한 예산을 업데이트
-    for (BudgetCreateReqDto.BudgetDto budgetDto : budgetDtos) {
-      Long categoryId = budgetDto.categoryId();
-      BigDecimal amount = budgetDto.amount();
-
-      // 사용자의 기존 예산 중에서 해당 카테고리를 찾음
-      Optional<Budget> existingBudget = budgets.stream()
-          .filter(budget -> budget.getCategory().getId().equals(categoryId))
-          .findFirst();
-
-      if (existingBudget.isPresent()) {
-        // 기존 예산이 존재하면 업데이트
-        Budget budget = existingBudget.get();
-        budget.updateAmount(amount);
-        updatedBudgets.add(budget);
-      } else {
-        // 기존 예산이 없으면 새로운 예산 생성
-        Category category = categories.get(categoryId);
-        if (category != null) {
-          Budget newBudget = Budget.builder()
-              .member(member)
-              .category(category)
-              .amount(amount)
-              .build();
-          updatedBudgets.add(newBudget);
-        }
-      }
-    }
-
-    // 저장된 예산 정보를 데이터베이스에 업데이트
-    List<Budget> savedBudgets = budgetRepository.saveAll(updatedBudgets);
-
-    // BudgetsResDto를 생성하여 반환
-    List<BudgetsResDto.BudgetDto> updatedBudgetDtos = savedBudgets.stream()
-        .map(budget -> new BudgetsResDto.BudgetDto(
-            budget.getCategory().getId(),
-            budget.getCategory().getName(),
-            budget.getAmount()
-        ))
-        .collect(Collectors.toList());
-
-    return new BudgetsResDto(updatedBudgetDtos, totalAmount);
   }
 
   private BudgetsResDto recommendBudgets(Member member, BigDecimal totalAmount) {
