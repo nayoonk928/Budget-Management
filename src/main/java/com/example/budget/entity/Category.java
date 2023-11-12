@@ -1,6 +1,11 @@
 package com.example.budget.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import java.math.BigDecimal;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -16,22 +21,26 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     String name;
 
     @Column(nullable = false)
-    Double averageRate;
+    BigDecimal averageRate;
 
     @Builder
-    public Category(String name, Double averageRate) {
+    public Category(String name, BigDecimal averageRate) {
         this.name = name;
-        this.averageRate = averageRate != null ? averageRate : 0.0;
+        this.averageRate = averageRate != null ? averageRate : BigDecimal.ZERO;
     }
 
-    public Category(Long id, String name, Double averageRate) {
+    public Category(Long id, String name, BigDecimal averageRate) {
         this.id = id;
         this.name = name;
-        this.averageRate = averageRate != null ? averageRate : 0.0;
+        this.averageRate = averageRate != null ? averageRate : BigDecimal.ZERO;
+    }
+
+    public void updateAverageRate(BigDecimal averageRate) {
+        this.averageRate = averageRate;
     }
 
 }

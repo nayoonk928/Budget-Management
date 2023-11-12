@@ -1,9 +1,19 @@
 package com.example.budget.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
@@ -27,7 +37,7 @@ public class Expense {
     LocalDateTime expendedAt;
 
     @Column(name = "expense_amount", nullable = false)
-    Long amount;
+    BigDecimal amount;
 
     @Column(nullable = false)
     Boolean isExcludedSum;
@@ -35,7 +45,7 @@ public class Expense {
     String description;
 
     @Builder
-    public Expense(Member member, Category category, LocalDateTime expendedAt, Long amount, Boolean isExcludedSum, String description) {
+    public Expense(Member member, Category category, LocalDateTime expendedAt, BigDecimal amount, Boolean isExcludedSum, String description) {
         this.member = member;
         this.category = category;
         this.expendedAt = expendedAt;

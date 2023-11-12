@@ -1,5 +1,6 @@
 package com.example.budget.dto.res;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record CategoriesResDto(
@@ -8,7 +9,8 @@ public record CategoriesResDto(
 
     public record CategoryResDto(
         Long id,
-        String name
+        String name,
+        BigDecimal averageRate
     ) {
     }
 
