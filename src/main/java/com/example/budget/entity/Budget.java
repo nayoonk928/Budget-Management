@@ -1,6 +1,7 @@
 package com.example.budget.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,21 +21,22 @@ public class Budget {
     @JoinColumn(name = "member_id", nullable = false)
     Member member;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
+    Category category;
+
     @Column(name = "budget_amount", nullable = false)
-    Long amount;
-
-    @Column(name = "budget_year", nullable = false)
-    Integer year;
-
-    @Column(name = "budget_month", nullable = false)
-    Integer month;
+    BigDecimal amount;
 
     @Builder
-    public Budget(Member member, Long amount, Integer year, Integer month) {
+    public Budget(Member member, Category category, BigDecimal amount) {
         this.member = member;
+        this.category = category;
         this.amount = amount;
-        this.year = year;
-        this.month = month;
+    }
+
+    public void updateAmount(BigDecimal amount) {
+        this.amount = amount;
     }
 
 }

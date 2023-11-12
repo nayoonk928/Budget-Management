@@ -1,6 +1,7 @@
 package com.example.budget.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -27,7 +28,7 @@ public class Expense {
     LocalDateTime expendedAt;
 
     @Column(name = "expense_amount", nullable = false)
-    Long amount;
+    BigDecimal amount;
 
     @Column(nullable = false)
     Boolean isExcludedSum;
@@ -35,7 +36,7 @@ public class Expense {
     String description;
 
     @Builder
-    public Expense(Member member, Category category, LocalDateTime expendedAt, Long amount, Boolean isExcludedSum, String description) {
+    public Expense(Member member, Category category, LocalDateTime expendedAt, BigDecimal amount, Boolean isExcludedSum, String description) {
         this.member = member;
         this.category = category;
         this.expendedAt = expendedAt;
