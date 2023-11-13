@@ -207,4 +207,39 @@ class ExpenseControllerTest extends ControllerTest {
 
   }
 
+  @Nested
+  @DisplayName("지출 목록 조회")
+  class get_expenses {
+
+    @Test
+    @DisplayName("성공")
+    void success() throws Exception {
+      //given
+      ExpenseCreateReqDto createDto = ExpenseCreateReqDto.builder()
+          .expendedAt(LocalDate.of(2023, 11, 13))
+          .amount(10000)
+          .category("식비")
+          .isExcludedSum(false)
+          .description("서브웨이 먹음")
+          .build();
+
+      mockMvc.perform(post("/api/expenses")
+              .header("Authorization", "Bearer " + accessToken)
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(createDto)))
+          .andExpect(status().isCreated())
+          .andDo(print())
+          .andReturn();
+
+      //when & then
+      mockMvc.perform(get("/api/expenses")
+              .header("Authorization", "Bearer " + accessToken)
+              .contentType(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andDo(print())
+          .andReturn();
+    }
+
+  }
+
 }
