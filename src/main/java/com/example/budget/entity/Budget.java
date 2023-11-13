@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import java.math.BigDecimal;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,17 +32,25 @@ public class Budget {
     Category category;
 
     @Column(name = "budget_amount", nullable = false)
-    BigDecimal amount;
+    Integer amount;
+
+    @Column(name = "rate", nullable = false)
+    Double rate;
 
     @Builder
-    public Budget(Member member, Category category, BigDecimal amount) {
+    public Budget(Member member, Category category, Integer amount, Double rate) {
         this.member = member;
         this.category = category;
+        this.amount = amount != null ? amount : 0;
+        this.rate = rate != null ? rate : 0;
+    }
+
+    public void updateAmount(Integer amount) {
         this.amount = amount;
     }
 
-    public void updateAmount(BigDecimal amount) {
-        this.amount = amount;
+    public void updateRate(Double rate) {
+        this.rate = rate;
     }
 
 }

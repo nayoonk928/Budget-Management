@@ -6,7 +6,7 @@ import com.example.budget.entity.Member;
 import com.example.budget.security.AuthenticationPrincipal;
 import com.example.budget.service.BudgetService;
 import jakarta.validation.Valid;
-import java.math.BigDecimal;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,7 +42,7 @@ public class BudgetController {
   @GetMapping("/recommend")
   public ResponseEntity<BudgetsResDto> recommendBudget(
       @AuthenticationPrincipal Member member,
-      @RequestParam(value = "total_amount")BigDecimal totalAmount
+      @RequestParam(value = "total_amount")Integer totalAmount
   ) {
     return ResponseEntity.ok().body(budgetService.recommendBudget(totalAmount));
   }

@@ -8,7 +8,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -37,7 +36,7 @@ public class Expense {
     LocalDateTime expendedAt;
 
     @Column(name = "expense_amount", nullable = false)
-    BigDecimal amount;
+    Integer amount;
 
     @Column(nullable = false)
     Boolean isExcludedSum;
@@ -45,7 +44,7 @@ public class Expense {
     String description;
 
     @Builder
-    public Expense(Member member, Category category, LocalDateTime expendedAt, BigDecimal amount, Boolean isExcludedSum, String description) {
+    public Expense(Member member, Category category, LocalDateTime expendedAt, Integer amount, Boolean isExcludedSum, String description) {
         this.member = member;
         this.category = category;
         this.expendedAt = expendedAt;
