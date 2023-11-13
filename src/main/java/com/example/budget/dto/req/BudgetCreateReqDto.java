@@ -3,7 +3,6 @@ package com.example.budget.dto.req;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.NotEmpty;
-import java.math.BigDecimal;
 import java.util.List;
 import lombok.Builder;
 
@@ -11,14 +10,14 @@ import lombok.Builder;
 public record BudgetCreateReqDto(
     @NotEmpty
     List<BudgetDto> budgets,
-    BigDecimal totalAmount
+    Integer totalAmount
 ) {
 
   @Builder
   @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
   public record BudgetDto(
       Long categoryId,
-      BigDecimal amount
+      Integer amount
   ) {
 
   }

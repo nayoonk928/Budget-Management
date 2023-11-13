@@ -14,7 +14,6 @@ import com.example.budget.exception.ErrorCode;
 import com.example.budget.repository.BudgetRepository;
 import com.example.budget.repository.CategoryRepository;
 import com.example.budget.service.BudgetService;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -58,11 +57,9 @@ class BudgetControllerTest extends ControllerTest {
     void success_create_budget() throws Exception {
       //given
       List<BudgetCreateReqDto.BudgetDto> budgetDtos = categories.keySet().stream()
-          .map(id -> new BudgetCreateReqDto.BudgetDto(id, BigDecimal.valueOf(1000).multiply(
-              BigDecimal.valueOf(id)))).toList();
+          .map(id -> new BudgetCreateReqDto.BudgetDto(id, (int) (1000 * id))).toList();
 
-      BigDecimal totalAmount = budgetDtos.stream().map(BudgetCreateReqDto.BudgetDto::amount)
-          .reduce(BigDecimal.ZERO, BigDecimal::add);
+      int totalAmount = budgetDtos.stream().mapToInt(BudgetCreateReqDto.BudgetDto::amount).sum();
 
       BudgetCreateReqDto request = new BudgetCreateReqDto(budgetDtos, totalAmount);
 
@@ -82,11 +79,9 @@ class BudgetControllerTest extends ControllerTest {
     void success_update_budget() throws Exception {
       //given
       List<BudgetCreateReqDto.BudgetDto> budgetDtos = categories.keySet().stream()
-          .map(id -> new BudgetCreateReqDto.BudgetDto(id, BigDecimal.valueOf(1000).multiply(
-              BigDecimal.valueOf(id)))).toList();
+          .map(id -> new BudgetCreateReqDto.BudgetDto(id, (int) (1000 * id))).toList();
 
-      BigDecimal totalAmount = budgetDtos.stream().map(BudgetCreateReqDto.BudgetDto::amount)
-          .reduce(BigDecimal.ZERO, BigDecimal::add);
+      int totalAmount = budgetDtos.stream().mapToInt(BudgetCreateReqDto.BudgetDto::amount).sum();
 
       BudgetCreateReqDto request = new BudgetCreateReqDto(budgetDtos, totalAmount);
 
@@ -101,12 +96,9 @@ class BudgetControllerTest extends ControllerTest {
 
       // 업데이트 객체
       List<BudgetCreateReqDto.BudgetDto> updatedBudgetDtos = categories.keySet().stream()
-          .map(id -> new BudgetCreateReqDto.BudgetDto(id, BigDecimal.valueOf(1500).multiply(
-              BigDecimal.valueOf(id)))).toList();
+          .map(id -> new BudgetCreateReqDto.BudgetDto(id, (int) (1500 * id))).toList();
 
-      BigDecimal updatedTotalAmount = updatedBudgetDtos.stream()
-          .map(BudgetCreateReqDto.BudgetDto::amount)
-          .reduce(BigDecimal.ZERO, BigDecimal::add);
+      int updatedTotalAmount = budgetDtos.stream().mapToInt(BudgetCreateReqDto.BudgetDto::amount).sum();
 
       BudgetCreateReqDto updatedRequest = new BudgetCreateReqDto(updatedBudgetDtos,
           updatedTotalAmount);
@@ -123,7 +115,7 @@ class BudgetControllerTest extends ControllerTest {
       //when & then
       List<Budget> updatedBudgets = budgetRepository.findAll();
       for (Budget budget : updatedBudgets) {
-        BigDecimal expectedAmount = updatedBudgetDtos.stream()
+        Integer expectedAmount = updatedBudgetDtos.stream()
             .filter(dto -> dto.categoryId() == budget.getCategory().getId())
             .map(BudgetCreateReqDto.BudgetDto::amount)
             .findFirst()
@@ -140,11 +132,9 @@ class BudgetControllerTest extends ControllerTest {
     void fail_create_budget_category() throws Exception {
       //given
       List<BudgetCreateReqDto.BudgetDto> budgetDtos = new ArrayList<>(categories.keySet().stream()
-          .map(id -> new BudgetCreateReqDto.BudgetDto(id, BigDecimal.valueOf(1000).multiply(
-              BigDecimal.valueOf(id)))).toList());
+          .map(id -> new BudgetCreateReqDto.BudgetDto(id, (int) (1000 * id))).toList());
       budgetDtos.remove(0);
-      BigDecimal totalAmount = budgetDtos.stream().map(BudgetCreateReqDto.BudgetDto::amount)
-          .reduce(BigDecimal.ZERO, BigDecimal::add);
+      int totalAmount = budgetDtos.stream().mapToInt(BudgetCreateReqDto.BudgetDto::amount).sum();
 
       BudgetCreateReqDto request = new BudgetCreateReqDto(budgetDtos, totalAmount);
 
@@ -170,11 +160,9 @@ class BudgetControllerTest extends ControllerTest {
     void success() throws Exception {
       //given
       List<BudgetCreateReqDto.BudgetDto> budgetDtos = categories.keySet().stream()
-          .map(id -> new BudgetCreateReqDto.BudgetDto(id, BigDecimal.valueOf(1000).multiply(
-              BigDecimal.valueOf(id)))).toList();
+          .map(id -> new BudgetCreateReqDto.BudgetDto(id, (int) (1000 * id))).toList();
 
-      BigDecimal totalAmount = budgetDtos.stream().map(BudgetCreateReqDto.BudgetDto::amount)
-          .reduce(BigDecimal.ZERO, BigDecimal::add);
+      int totalAmount = budgetDtos.stream().mapToInt(BudgetCreateReqDto.BudgetDto::amount).sum();
 
       BudgetCreateReqDto request = new BudgetCreateReqDto(budgetDtos, totalAmount);
       budgetService.createBudget(member, request);
@@ -211,11 +199,9 @@ class BudgetControllerTest extends ControllerTest {
     @DisplayName("성공")
     void success() throws Exception {
       //given
-      BigDecimal totalAmount = new BigDecimal("40000");
-
       //when & then
       mockMvc.perform(get("/api/budgets/recommend")
-              .param("total_amount", totalAmount.toString())
+              .param("total_amount", "400000")
               .header("Authorization", "Bearer " + accessToken)
               .contentType(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())

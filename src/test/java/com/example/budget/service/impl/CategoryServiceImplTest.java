@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import com.example.budget.dto.res.CategoriesResDto;
 import com.example.budget.entity.Category;
 import com.example.budget.repository.CategoryRepository;
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
@@ -29,8 +28,8 @@ class CategoryServiceImplTest {
   @DisplayName("카테고리 목록 불러오기")
   void get_categories() {
     //given
-    Category category1 = new Category(1L, "카테고리1", BigDecimal.ZERO);
-    Category category2 = new Category(2L, "카테고리2", BigDecimal.ZERO);
+    Category category1 = new Category(1L, "카테고리1", 0);
+    Category category2 = new Category(2L, "카테고리2", 0);
     List<Category> mockCategories = Arrays.asList(category1, category2);
 
     Mockito.when(categoryRepository.findAll()).thenReturn(mockCategories);

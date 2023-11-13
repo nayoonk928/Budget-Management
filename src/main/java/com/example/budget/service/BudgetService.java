@@ -3,7 +3,6 @@ package com.example.budget.service;
 import com.example.budget.dto.req.BudgetCreateReqDto;
 import com.example.budget.dto.res.BudgetsResDto;
 import com.example.budget.entity.Member;
-import java.math.BigDecimal;
 
 public interface BudgetService {
 
@@ -11,6 +10,6 @@ public interface BudgetService {
 
   BudgetsResDto getBudgets(Member member);
 
-  BudgetsResDto recommendBudget(BigDecimal totalAmount);
+  BudgetsResDto recommendBudget(Integer totalAmount);
 
 }

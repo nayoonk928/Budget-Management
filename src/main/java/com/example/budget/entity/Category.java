@@ -5,7 +5,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.math.BigDecimal;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,21 +24,21 @@ public class Category {
     String name;
 
     @Column(nullable = false)
-    BigDecimal averageRate;
+    Integer averageRate;
 
     @Builder
-    public Category(String name, BigDecimal averageRate) {
+    public Category(String name, Integer averageRate) {
         this.name = name;
-        this.averageRate = averageRate != null ? averageRate : BigDecimal.ZERO;
+        this.averageRate = averageRate != null ? averageRate : 0;
     }
 
-    public Category(Long id, String name, BigDecimal averageRate) {
+    public Category(Long id, String name, Integer averageRate) {
         this.id = id;
         this.name = name;
-        this.averageRate = averageRate != null ? averageRate : BigDecimal.ZERO;
+        this.averageRate = averageRate != null ? averageRate : 0;
     }
 
-    public void updateAverageRate(BigDecimal averageRate) {
+    public void updateAverageRate(Integer averageRate) {
         this.averageRate = averageRate;
     }
 

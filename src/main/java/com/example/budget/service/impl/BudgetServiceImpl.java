@@ -1,5 +1,7 @@
 package com.example.budget.service.impl;
 
+import static com.example.budget.dto.res.BudgetsResDto.BudgetDto.mapToBudgetDtos;
+
 import com.example.budget.dto.req.BudgetCreateReqDto;
 import com.example.budget.dto.res.BudgetsResDto;
 import com.example.budget.dto.res.BudgetsResDto.BudgetDto;
@@ -10,19 +12,21 @@ import com.example.budget.exception.CustomException;
 import com.example.budget.exception.ErrorCode;
 import com.example.budget.repository.BudgetRepository;
 import com.example.budget.repository.CategoryRepository;
+import com.example.budget.repository.MemberRepository;
 import com.example.budget.service.BudgetService;
 import com.example.budget.type.CategoryType;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -30,6 +34,7 @@ public class BudgetServiceImpl implements BudgetService {
 
   private final BudgetRepository budgetRepository;
   private final CategoryRepository categoryRepository;
+  private final MemberRepository memberRepository;
 
   /**
    * 사용자 예산 설정
@@ -49,23 +54,26 @@ public class BudgetServiceImpl implements BudgetService {
 
     for (BudgetCreateReqDto.BudgetDto budgetDto : request.budgets()) {
       Long categoryId = budgetDto.categoryId();
-      BigDecimal amount = budgetDto.amount();
+      Integer amount = budgetDto.amount();
 
       Optional<Budget> existingBudget = findBudgetByCategory(budgets, categoryId);
 
       if (existingBudget.isPresent()) {
-        updateExistingBudget(existingBudget.get(), amount);
+        existingBudget.get().updateAmount(amount);
         updatedBudgets.add(existingBudget.get());
       } else {
         createNewBudget(updatedBudgets, member, categories, categoryId, amount);
       }
     }
 
+    // 사용자 예산 비율 업데이트
+    updateCategoryRateByMember(budgets);
+
+    // 카테고리 비율 업데이트
+    updateCategoryAverageRate();
+
     List<Budget> savedBudgets = budgetRepository.saveAll(updatedBudgets);
     List<BudgetsResDto.BudgetDto> updatedBudgetDtos = mapToBudgetDtos(savedBudgets);
-
-    // 카테고리 평균 비율 업데이트
-    updateCategoryAverageRate(categories, budgets, member);
 
     return new BudgetsResDto(updatedBudgetDtos, request.totalAmount());
   }
@@ -84,11 +92,11 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     List<BudgetsResDto.BudgetDto> budgetDtos = budgets.stream()
-        .map(budget -> new BudgetsResDto.BudgetDto(budget.getCategory().getId(),
+        .map(budget -> new BudgetDto(budget.getCategory().getId(),
             budget.getCategory().getName(), budget.getAmount()))
         .collect(Collectors.toList());
 
-    BigDecimal totalAmount = calculateTotalAmount(budgetDtos);
+    int totalAmount = BudgetsResDto.getTotalAmount(budgetDtos);
 
     return new BudgetsResDto(budgetDtos, totalAmount);
   }
@@ -99,8 +107,8 @@ public class BudgetServiceImpl implements BudgetService {
    * @param totalAmount 사용자 입력 총액
    */
   @Override
-  public BudgetsResDto recommendBudget(BigDecimal totalAmount) {
-    BigDecimal restAmount = totalAmount;
+  public BudgetsResDto recommendBudget(Integer totalAmount) {
+    int restAmount = totalAmount;
     List<BudgetsResDto.BudgetDto> budgetDtos = new ArrayList<>();
     List<Category> categories = categoryRepository.findAll();
 
@@ -109,8 +117,8 @@ public class BudgetServiceImpl implements BudgetService {
         continue;
       }
 
-      BigDecimal categoryBudget = getCategoryBudget(category, totalAmount);
-      restAmount = restAmount.subtract(categoryBudget);
+      int categoryBudget = getCategoryBudget(category, totalAmount);
+      restAmount -= categoryBudget;
       budgetDtos.add(new BudgetDto(category.getId(), category.getName(), categoryBudget));
     }
 
@@ -119,8 +127,7 @@ public class BudgetServiceImpl implements BudgetService {
         .findFirst();
     if (etcOptional.isPresent()) {
       Category etcCategory = etcOptional.get();
-      BigDecimal budgetAmount = restAmount.divide(new BigDecimal("1000"))
-          .multiply(new BigDecimal("1000"));
+      int budgetAmount = (restAmount / 1000) * 1000;
       budgetDtos.add(new BudgetDto(etcCategory.getId(), etcCategory.getName(), budgetAmount));
     }
     return new BudgetsResDto(budgetDtos, totalAmount);
@@ -144,12 +151,8 @@ public class BudgetServiceImpl implements BudgetService {
         .findFirst();
   }
 
-  private void updateExistingBudget(Budget budget, BigDecimal amount) {
-    budget.updateAmount(amount);
-  }
-
   private void createNewBudget(List<Budget> updatedBudgets, Member member,
-      Map<Long, Category> categories, Long categoryId, BigDecimal amount) {
+      Map<Long, Category> categories, Long categoryId, Integer amount) {
     Category category = categories.get(categoryId);
     if (category != null) {
       Budget newBudget = Budget.builder()
@@ -161,85 +164,46 @@ public class BudgetServiceImpl implements BudgetService {
     }
   }
 
-  private List<BudgetsResDto.BudgetDto> mapToBudgetDtos(List<Budget> savedBudgets) {
-    return savedBudgets.stream()
-        .map(budget -> new BudgetsResDto.BudgetDto(
-            budget.getCategory().getId(),
-            budget.getCategory().getName(),
-            budget.getAmount()
-        ))
-        .collect(Collectors.toList());
-  }
-
   // ------ getBudgets() 관련 메서드 ------
   private BudgetsResDto createEmptyBudgetsResDto() {
     Map<Long, Category> categories = loadCategories();
     List<BudgetsResDto.BudgetDto> budgetDtos = categories.values().stream()
-        .map(category -> new BudgetsResDto.BudgetDto(category.getId(), category.getName(),
-            BigDecimal.ZERO))
+        .map(category -> new BudgetsResDto.BudgetDto(category.getId(), category.getName(), 0))
         .collect(Collectors.toList());
 
-    return new BudgetsResDto(budgetDtos, BigDecimal.ZERO);
+    return new BudgetsResDto(budgetDtos, 0);
   }
 
-  private BigDecimal calculateTotalAmount(List<BudgetsResDto.BudgetDto> budgetDtos) {
-    return budgetDtos.stream().map(BudgetsResDto.BudgetDto::amount)
-        .reduce(BigDecimal.ZERO, BigDecimal::add);
+  // ------ 카테고리 평균 비율 계산 메서드 ------
+  private void updateCategoryRateByMember(List<Budget> memberBudgets) {
+    long totalAmount = memberBudgets.stream().mapToLong(Budget::getAmount).sum();
+
+    for (Budget memberBudget : memberBudgets) {
+      double rate = (((double) memberBudget.getAmount() / totalAmount) * 100);
+      memberBudget.updateRate(rate);
+    }
   }
 
-  // ------ 카테고리 평균 비율 계산 관련 메서드 ------
-  private void updateCategoryAverageRate(Map<Long, Category> categories, List<Budget> budgets,
-      Member member) {
-    BigDecimal restRate = BigDecimal.valueOf(100);
-    BigDecimal budgetsSum = budgets.stream().map(Budget::getAmount)
-        .reduce(BigDecimal.ZERO, BigDecimal::add);
-    Map<Long, Long> budgetCounts = budgetRepository.getCountGroupByCategory(member);
+  private void updateCategoryAverageRate() {
+    Map<Long, Double> categoryAverageRates = budgetRepository.getCategoryAverageRates();
 
-    for (Budget budget : budgets) {
-      if (CategoryType.ETC.getName().equals(budget.getCategory().getName())) {
-        continue;
+    for (Map.Entry<Long, Double> entry : categoryAverageRates.entrySet()) {
+      Long categoryId = entry.getKey();
+      Double averageRate = entry.getValue();
+
+      Category category = categoryRepository.findById(categoryId).orElse(null);
+
+      if (category != null) {
+        int roundedRate = (int) Math.round(averageRate);
+        category.updateAverageRate(roundedRate);
+        categoryRepository.save(category);
       }
-
-      long categoryId = budget.getCategory().getId();
-      long categoryCount = budgetCounts.containsKey(categoryId) ? budgetCounts.get(categoryId) : 0;
-      Category category = categories.get(categoryId);
-
-      BigDecimal memberRate = budget.getAmount().divide(budgetsSum, 4, RoundingMode.HALF_UP)
-          .multiply(BigDecimal.valueOf(100));
-      BigDecimal categoryNewAverageRate = getCategoryNewAverageRate(category, categoryCount,
-          memberRate);
-      category.updateAverageRate(categoryNewAverageRate);
-      restRate = restRate.subtract(categoryNewAverageRate);
-    }
-
-    Optional<Category> etcOptional = categories.values().stream()
-        .filter(it -> it.getName().equals(CategoryType.ETC.getName()))
-        .findFirst();
-    if (etcOptional.isPresent()) {
-      Category etcCategory = etcOptional.get();
-      etcCategory.updateAverageRate(restRate);
     }
   }
 
-  private BigDecimal getCategoryNewAverageRate(Category category, long categoryCount,
-      BigDecimal rate) {
-    BigDecimal categoryAverageRate =
-        category.getAverageRate() != null ? category.getAverageRate() : BigDecimal.ZERO;
-    BigDecimal categorySum = categoryAverageRate.multiply(BigDecimal.valueOf(categoryCount));
-    return categorySum.add(rate)
-        .divide(BigDecimal.valueOf(categoryCount + 1), 4, RoundingMode.HALF_UP);
-  }
-
-  private BigDecimal getCategoryBudget(Category category, BigDecimal totalAmount) {
-    BigDecimal averageRate =
-        category.getAverageRate() != null ? category.getAverageRate() : BigDecimal.ZERO;
-
-    if (averageRate.compareTo(BigDecimal.TEN) >= 0) {
-      return totalAmount.multiply(averageRate).divide(new BigDecimal("100000"))
-          .multiply(new BigDecimal("1000"));
-    } else {
-      return BigDecimal.ZERO;
-    }
+  private int getCategoryBudget(Category category, int totalAmount) {
+    int averageRate = category.getAverageRate() != null ? category.getAverageRate() : 0;
+    return averageRate >= 10 ? ((totalAmount * averageRate) / (100 * 1000)) * 1000 : 0;
   }
 
 }
