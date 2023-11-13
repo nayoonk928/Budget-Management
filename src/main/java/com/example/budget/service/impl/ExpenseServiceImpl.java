@@ -79,7 +79,9 @@ public class ExpenseServiceImpl implements ExpenseService {
 
     for (Expense expense : filteredExpenses) {
       expenseResDtos.add(mapExpenseToDto(expense));
-      totalAmount += expense.getAmount();
+      if (!expense.getIsExcludedSum()) {
+        totalAmount += expense.getAmount();
+      }
       String category = expense.getCategory().getName();
       categoryAmountMap.merge(category, expense.getAmount(), Integer::sum);
     }
