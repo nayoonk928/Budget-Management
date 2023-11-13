@@ -24,6 +24,9 @@ public enum ErrorCode {
     // Category
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 카테고리입니다."),
 
+    // Expense
+    EXPENSE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 지출 내역입니다."),
+
     // ------ 5xx ------
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 문제가 발생했습니다."),
     ;
