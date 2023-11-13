@@ -242,4 +242,41 @@ class ExpenseControllerTest extends ControllerTest {
 
   }
 
+  @Nested
+  @DisplayName("지출 삭제")
+  class delete_expense {
+
+    @Test
+    @DisplayName("성공")
+    void success() throws Exception {
+      //given
+      ExpenseCreateReqDto createDto = ExpenseCreateReqDto.builder()
+          .expendedAt(LocalDate.of(2023, 11, 13))
+          .amount(10000)
+          .category("식비")
+          .isExcludedSum(false)
+          .description("서브웨이 먹음")
+          .build();
+
+      MvcResult result = mockMvc.perform(post("/api/expenses")
+              .header("Authorization", "Bearer " + accessToken)
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(objectMapper.writeValueAsString(createDto)))
+          .andExpect(status().isCreated())
+          .andDo(print())
+          .andReturn();
+
+      String resultContent = result.getResponse().getContentAsString();
+      JsonNode resultJson = objectMapper.readTree(resultContent);
+      long expenseId = resultJson.get("expense_id").asLong();
+
+      //when & then
+      mockMvc.perform(delete("/api/expenses/{expenseId}", expenseId)
+              .header("Authorization", "Bearer " + accessToken))
+          .andExpect(status().isNoContent())
+          .andDo(print());
+    }
+
+  }
+
 }

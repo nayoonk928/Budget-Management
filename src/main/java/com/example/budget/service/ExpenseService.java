@@ -18,4 +18,6 @@ public interface ExpenseService {
   ExpensesResDto getExpenses(Member member, LocalDate startDate, LocalDate endDate,
       Integer minAmount, Integer maxAmount, String categoryType, Pageable pageable);
 
+  void deleteExpense(Member member, Long expenseId);
+
 }

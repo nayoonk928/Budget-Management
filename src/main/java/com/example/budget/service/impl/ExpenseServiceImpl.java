@@ -91,6 +91,13 @@ public class ExpenseServiceImpl implements ExpenseService {
     return new ExpensesResDto(totalAmount, categoryResDtos, expenseResDtos);
   }
 
+  @Override
+  @Transactional
+  public void deleteExpense(Member member, Long expenseId) {
+    Expense expense = expenseFindByIdAndMember(expenseId, member);
+    expenseRepository.delete(expense);
+  }
+
   private ExpensesResDto.ExpenseResDto mapExpenseToDto(Expense expense) {
       StringBuilder description = new StringBuilder();
       if (expense.getDescription().length() > 15) {
