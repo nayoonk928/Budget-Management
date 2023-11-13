@@ -8,7 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,38 +19,48 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Expense {
 
-    @Id
-    @Column(name = "expense_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+  @Id
+  @Column(name = "expense_id")
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", nullable = false)
-    Member member;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "member_id", nullable = false)
+  Member member;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
-    Category category;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "category_id", nullable = false)
+  Category category;
 
-    @Column(nullable = false)
-    LocalDateTime expendedAt;
+  @Column(nullable = false)
+  LocalDate expendedAt;
 
-    @Column(name = "expense_amount", nullable = false)
-    Integer amount;
+  @Column(name = "expense_amount", nullable = false)
+  Integer amount;
 
-    @Column(nullable = false)
-    Boolean isExcludedSum;
+  @Column(nullable = false)
+  Boolean isExcludedSum;
 
-    String description;
+  String description;
 
-    @Builder
-    public Expense(Member member, Category category, LocalDateTime expendedAt, Integer amount, Boolean isExcludedSum, String description) {
-        this.member = member;
-        this.category = category;
-        this.expendedAt = expendedAt;
-        this.amount = amount;
-        this.isExcludedSum = isExcludedSum != null ? isExcludedSum : false;
-        this.description = description;
-    }
+  @Builder
+  public Expense(Member member, Category category, LocalDate expendedAt, Integer amount,
+      Boolean isExcludedSum, String description) {
+    this.member = member;
+    this.category = category;
+    this.expendedAt = expendedAt;
+    this.amount = amount;
+    this.isExcludedSum = isExcludedSum != null ? isExcludedSum : false;
+    this.description = description;
+  }
+
+  public void update(Category category, LocalDate expendedAt, Integer amount, Boolean isExcludedSum,
+      String description) {
+    this.category = category;
+    this.expendedAt = expendedAt;
+    this.amount = amount;
+    this.isExcludedSum = isExcludedSum != null ? isExcludedSum : this.isExcludedSum;
+    this.description = description;
+  }
 
 }
