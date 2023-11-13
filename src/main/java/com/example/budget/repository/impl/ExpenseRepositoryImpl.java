@@ -29,7 +29,6 @@ public class ExpenseRepositoryImpl implements ExpenseQRepository {
         .leftJoin(expense.category, category)
         .where(
             expense.member.eq(member),
-            expense.isExcludedSum.isFalse(),
             expense.expendedAt.between(startDate, endDate),
             expense.amount.between(minAmount, maxAmount)
         );
