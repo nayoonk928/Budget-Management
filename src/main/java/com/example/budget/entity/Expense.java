@@ -8,7 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import java.time.LocalDateTime;
+import java.util.Date;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -33,7 +33,7 @@ public class Expense {
     Category category;
 
     @Column(nullable = false)
-    LocalDateTime expendedAt;
+    Date expendedAt;
 
     @Column(name = "expense_amount", nullable = false)
     Integer amount;
@@ -44,7 +44,7 @@ public class Expense {
     String description;
 
     @Builder
-    public Expense(Member member, Category category, LocalDateTime expendedAt, Integer amount, Boolean isExcludedSum, String description) {
+    public Expense(Member member, Category category, Date expendedAt, Integer amount, Boolean isExcludedSum, String description) {
         this.member = member;
         this.category = category;
         this.expendedAt = expendedAt;
