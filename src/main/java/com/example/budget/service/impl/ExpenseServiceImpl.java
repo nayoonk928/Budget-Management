@@ -35,14 +35,7 @@ public class ExpenseServiceImpl implements ExpenseService {
   public ExpenseDetailResDto createExpense(Member member, ExpenseCreateReqDto request) {
     Category category = categoryFindByName(request.category());
 
-    Expense expense = Expense.builder()
-        .member(member)
-        .category(category)
-        .expendedAt(request.expendedAt())
-        .amount(request.amount())
-        .isExcludedSum(request.isExcludedSum())
-        .description(request.description())
-        .build();
+    Expense expense = request.toEntity(member, category, request);
     expenseRepository.save(expense);
     return getExpenseDetailDto(expense);
   }
