@@ -13,4 +13,6 @@ public interface ExpenseQRepository {
 
   List<Long> findExpenseIdsByMember(Long memberId);
 
+  List<Expense> getExpensesByDateRange(Member member, LocalDate startDate, LocalDate endDate);
+
 }

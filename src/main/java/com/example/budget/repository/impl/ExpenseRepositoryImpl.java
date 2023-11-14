@@ -14,6 +14,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 
@@ -58,6 +60,33 @@ public class ExpenseRepositoryImpl implements ExpenseQRepository {
         .from(expense)
         .where(expense.member.id.eq(memberId))
         .fetch();
+  }
+
+  @Override
+  public List<Expense> getExpensesByDateRange(Member member, LocalDate startDate,
+      LocalDate endDate) {
+    return queryFactory.selectFrom(expense)
+        .leftJoin(expense.category, category)
+        .where(
+            expense.member.eq(member),
+            expense.expendedAt.between(startDate, endDate)
+        )
+        .fetch();
+  }
+
+  public Map<String, Integer> getCategoryTotalAmounts(Member member, LocalDate today) {
+    return queryFactory
+        .select(expense.category.name, expense.amount.sum())
+        .from(expense)
+        .where(expense.member.eq(member)
+            .and(expense.expendedAt.before(today)))
+        .groupBy(expense.category)
+        .fetch()
+        .stream()
+        .collect(Collectors.toMap(
+            tuple -> tuple.get(expense.category.name),
+            tuple -> tuple.get(expense.amount.sum())
+        ));
   }
 
 }

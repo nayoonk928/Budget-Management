@@ -19,9 +19,10 @@ public enum ErrorCode {
     INCORRECT_ACCOUNT_OR_PASSWORD(HttpStatus.BAD_REQUEST,"계정 또는 비밀번호가 일치하지 않습니다."),
 
     // Budget
-    ALL_CATEGORIES_NOT_ROAD(HttpStatus.BAD_REQUEST, "모든 카테고리가 포함되지 않았습니다."),
+    BUDGET_NOT_FOUND(HttpStatus.NOT_FOUND, "예산이 존재하지 않습니다."),
 
     // Category
+    ALL_CATEGORIES_NOT_ROAD(HttpStatus.BAD_REQUEST, "모든 카테고리가 포함되지 않았습니다."),
     CATEGORY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 카테고리입니다."),
 
     // Expense

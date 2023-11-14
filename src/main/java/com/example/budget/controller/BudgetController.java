@@ -6,7 +6,6 @@ import com.example.budget.entity.Member;
 import com.example.budget.security.AuthenticationPrincipal;
 import com.example.budget.service.BudgetService;
 import jakarta.validation.Valid;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
