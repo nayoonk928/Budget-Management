@@ -11,8 +11,7 @@ public record CategoriesResDto(
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public record CategoryResDto(
         Long id,
-        String name,
-        Integer averageRate
+        String name
     ) {
     }
 
