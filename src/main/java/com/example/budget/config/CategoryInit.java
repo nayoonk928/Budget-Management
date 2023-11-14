@@ -7,11 +7,9 @@ import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-@Profile("test-data")
 @Component
 @RequiredArgsConstructor
 public class CategoryInit {
@@ -24,12 +22,16 @@ public class CategoryInit {
     List<Category> categories = new ArrayList<>();
 
     for (CategoryType type : CategoryType.values()) {
-      categories.add(Category.builder()
-          .name(type.getName())
-          .build());
+      if (!categoryRepository.existsByName(type.getName())) {
+        categories.add(Category.builder()
+            .name(type.getName())
+            .build());
+      }
     }
 
-    categoryRepository.saveAll(categories);
+    if (!categories.isEmpty()) {
+      categoryRepository.saveAll(categories);
+    }
   }
 
 }

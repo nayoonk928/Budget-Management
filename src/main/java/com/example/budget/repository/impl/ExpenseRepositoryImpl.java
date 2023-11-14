@@ -3,6 +3,7 @@ package com.example.budget.repository.impl;
 import static com.example.budget.entity.QCategory.category;
 import static com.example.budget.entity.QExpense.expense;
 
+import com.example.budget.entity.Category;
 import com.example.budget.entity.Expense;
 import com.example.budget.entity.Member;
 import com.example.budget.repository.ExpenseQRepository;
@@ -14,6 +15,8 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 
@@ -53,11 +56,36 @@ public class ExpenseRepositoryImpl implements ExpenseQRepository {
   }
 
   @Override
-  public List<Long> findExpenseIdsByMember(Long memberId) {
-    return queryFactory.select(expense.id)
-        .from(expense)
-        .where(expense.member.id.eq(memberId))
+  public List<Expense> getExpensesByDateRange(Member member, LocalDate startDate,
+      LocalDate endDate) {
+    return queryFactory.selectFrom(expense)
+        .leftJoin(expense.category, category)
+        .where(
+            expense.member.eq(member),
+            expense.expendedAt.between(startDate, endDate)
+        )
         .fetch();
   }
+
+  @Override
+  public Map<Category, Integer> getTotalExpenseByDateRangeGroupByCategory(Member member,
+      LocalDate startDate, LocalDate endDate) {
+    return queryFactory.select(category, expense.amount.sum())
+        .from(expense)
+        .leftJoin(expense.category, category)
+        .where(
+            expense.member.eq(member),
+            expense.isExcludedSum.isFalse(),
+            expense.expendedAt.between(startDate, endDate)
+        )
+        .groupBy(category.id)
+        .orderBy(category.id.asc())
+        .fetch()
+        .stream().collect(Collectors.toMap(
+            tuple -> tuple.get(category),
+            tuple -> tuple.get(expense.amount.sum())
+        ));
+  }
+
 
 }
