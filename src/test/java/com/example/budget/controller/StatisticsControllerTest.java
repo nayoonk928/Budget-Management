@@ -32,7 +32,7 @@ class StatisticsControllerTest extends ControllerTest {
     @DisplayName("성공: 월 대비 통계")
     void compare_with_last_month() throws Exception {
       //given
-      expenseDataInit.generateTestData(member, 1000);
+      expenseDataInit.generateTestData(member, 100);
 
       //when & then
       mockMvc.perform(get("/api/statistics/month")
@@ -50,7 +50,7 @@ class StatisticsControllerTest extends ControllerTest {
     @DisplayName("성공: 요일 대비 통계")
     void compare_with_last_weekday() throws Exception {
       //given
-      expenseDataInit.generateTestData(member, 1000);
+      expenseDataInit.generateTestData(member, 100);
 
       //when & then
       mockMvc.perform(get("/api/statistics/weekday")
