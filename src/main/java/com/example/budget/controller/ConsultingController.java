@@ -1,5 +1,6 @@
 package com.example.budget.controller;
 
+import com.example.budget.dto.res.DailyReportDto;
 import com.example.budget.dto.res.ExpenseRecommendDto;
 import com.example.budget.entity.Member;
 import com.example.budget.security.AuthenticationPrincipal;
@@ -22,6 +23,13 @@ public class ConsultingController {
       @AuthenticationPrincipal Member member
   ) {
     return ResponseEntity.ok().body(consultingService.recommendDailyExpense(member));
+  }
+
+  @GetMapping
+  public ResponseEntity<DailyReportDto> getDailyReport(
+      @AuthenticationPrincipal Member member
+  ) {
+    return ResponseEntity.ok().body(consultingService.getDailyReport(member));
   }
 
 }

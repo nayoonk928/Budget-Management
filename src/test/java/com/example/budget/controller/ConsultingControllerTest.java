@@ -10,6 +10,7 @@ import com.example.budget.dto.req.BudgetCreateReqDto;
 import com.example.budget.dto.req.BudgetCreateReqDto.BudgetDto;
 import com.example.budget.dto.req.ExpenseCreateReqDto;
 import com.example.budget.entity.Category;
+import com.example.budget.exception.ErrorCode;
 import com.example.budget.service.BudgetService;
 import com.example.budget.service.ExpenseService;
 import java.time.LocalDate;
@@ -61,6 +62,46 @@ class ConsultingControllerTest extends ControllerTest {
           .andExpect(jsonPath("$.message").isString())
           .andDo(print())
           .andReturn();
+    }
+
+  }
+
+  @Nested
+  @DisplayName("오늘 지출 안내")
+  class get_daily_report {
+
+    @Test
+    @DisplayName("성공")
+    void success() throws Exception {
+      //given
+      createBudgets();
+      createExpenses();
+
+      //when & then
+      mockMvc.perform(get("/api/expenses/today")
+              .header("Authorization", "Bearer " + accessToken))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.recommend_expense").isNumber())
+          .andExpect(jsonPath("$.spent_expense").isNumber())
+          .andExpect(jsonPath("$.risk").isNumber())
+          .andExpect(jsonPath("$.categories").isArray())
+          .andExpect(jsonPath("$.categories[0].expense").isNumber())
+          .andExpect(jsonPath("$.categories[0].risk").isNumber())
+          .andDo(print());
+    }
+
+    @Test
+    @DisplayName("실패: 예산 설정 내역 없음")
+    void fail_not_found_budget() throws Exception {
+      //given
+      createExpenses();
+
+      //when & then
+      mockMvc.perform(get("/api/expenses/today")
+              .header("Authorization", "Bearer " + accessToken))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.error_code").value(ErrorCode.BUDGET_NOT_FOUND.name()))
+          .andDo(print());
     }
 
   }

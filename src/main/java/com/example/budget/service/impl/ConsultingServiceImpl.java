@@ -76,23 +76,21 @@ public class ConsultingServiceImpl implements ConsultingService {
 
     // 오늘 지출 합계
     int todayExpense = 0;
+    List<DailyReportDto.CategoryResDto> categoryResDtos = new ArrayList<>();
     Map<Category, Integer> dailyTotalExpenseByCategory =
         expenseRepository.getTotalExpenseByDateRangeGroupByCategory(member, today, today);
-    for (Map.Entry<Category, Integer> entry : dailyTotalExpenseByCategory.entrySet()) {
 
+    for (Map.Entry<Category, Integer> entry : dailyTotalExpenseByCategory.entrySet()) {
+      Category category = entry.getKey();
+      int categoryExpense = entry.getValue();
+      int risk = calculateRisk(categoryExpense, todayBudget);
+
+      categoryResDtos.add(new DailyReportDto.CategoryResDto(category.getName(), categoryExpense, risk));
+      todayExpense += categoryExpense;
     }
 
-    List<DailyReportDto.CategoryResDto> categoryResDtos = dailyTotalExpenseByCategory
-        .entrySet()
-        .stream()
-        .map(entry -> new DailyReportDto.CategoryResDto(
-            entry.getKey().getName(),
-            entry.getValue(),
-            calculateRisk(entry.getValue(), todayBudget)
-        ))
-        .collect(Collectors.toList());
-
-    return new DailyReportDto(todayBudget, todayExpense, 0, categoryResDtos);
+    int risk = calculateRisk(todayExpense, todayBudget);
+    return new DailyReportDto(todayBudget, todayExpense, risk, categoryResDtos);
   }
 
   // Risk 계산 메서드
@@ -116,7 +114,7 @@ public class ConsultingServiceImpl implements ConsultingService {
   private int getTodayBudget(Member member, LocalDate today, int totalExpenditureToDate) {
     Integer totalBudgets = budgetRepository.getTotalAmountByMember(member);
 
-    if (totalBudgets == 0 || totalBudgets == null) {
+    if (totalBudgets == null || totalBudgets == 0) {
       throw new CustomException(ErrorCode.BUDGET_NOT_FOUND);
     }
 
