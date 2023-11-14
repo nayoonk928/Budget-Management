@@ -37,7 +37,7 @@ CI: ![Static Badge](https://img.shields.io/badge/Github-Actions-orange)  <br/>
 ## Running Tests
 
 > Test Result ScreenShot ![Static Badge](https://img.shields.io/badge/Test_Passed-20/20-green)
-![test_result](..%2F..%2FPictures%2FScreenshots%2F%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202023-11-15%20052115.png)
+![test_result](doc/TestResult.png)
 
 <br/>
 
@@ -711,10 +711,7 @@ Authentication: Bearer {JWT}
 ## 구현과정(설계 및 의도)
 
 
-
 ## TIL 및 회고
 
-
-<br/>
 
 ## References
