@@ -1,5 +1,8 @@
 package com.example.budget.dto.req;
 
+import com.example.budget.entity.Category;
+import com.example.budget.entity.Expense;
+import com.example.budget.entity.Member;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import jakarta.validation.constraints.Min;
@@ -20,5 +23,16 @@ public record ExpenseCreateReqDto(
     Boolean isExcludedSum,
     String description
 ) {
+
+    public Expense toEntity(Member member, Category category, ExpenseCreateReqDto request) {
+        return Expense.builder()
+            .member(member)
+            .category(category)
+            .expendedAt(request.expendedAt())
+            .amount(request.amount())
+            .isExcludedSum(request.isExcludedSum())
+            .description(request.description())
+            .build();
+    }
 
 }
