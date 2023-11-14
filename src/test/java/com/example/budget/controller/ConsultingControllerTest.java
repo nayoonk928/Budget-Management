@@ -56,7 +56,8 @@ class ConsultingControllerTest extends ControllerTest {
       mockMvc.perform(get("/api/expenses/today/recommend")
               .header("Authorization", "Bearer " + accessToken))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.recommend_budget").isNumber())
+          .andExpect(jsonPath("$.total_budget").isNumber())
+          .andExpect(jsonPath("$.categories[0].budget").isNumber())
           .andExpect(jsonPath("$.message").isString())
           .andDo(print())
           .andReturn();

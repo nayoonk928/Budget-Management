@@ -6,15 +6,14 @@ import java.util.List;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public record ExpenseRecommendDto(
-    Integer recommendBudget,
+    Integer TotalBudget,
     String message,
     List<CategoryResDto> categories
 ) {
 
-  @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
   public record CategoryResDto(
       String category,
-      Integer restAmount
+      Integer budget
   ) {
   }
 

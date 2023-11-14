@@ -3,6 +3,7 @@ package com.example.budget.repository.impl;
 import static com.example.budget.entity.QCategory.category;
 import static com.example.budget.entity.QExpense.expense;
 
+import com.example.budget.entity.Category;
 import com.example.budget.entity.Expense;
 import com.example.budget.entity.Member;
 import com.example.budget.repository.ExpenseQRepository;
@@ -55,14 +56,6 @@ public class ExpenseRepositoryImpl implements ExpenseQRepository {
   }
 
   @Override
-  public List<Long> findExpenseIdsByMember(Long memberId) {
-    return queryFactory.select(expense.id)
-        .from(expense)
-        .where(expense.member.id.eq(memberId))
-        .fetch();
-  }
-
-  @Override
   public List<Expense> getExpensesByDateRange(Member member, LocalDate startDate,
       LocalDate endDate) {
     return queryFactory.selectFrom(expense)
@@ -74,19 +67,25 @@ public class ExpenseRepositoryImpl implements ExpenseQRepository {
         .fetch();
   }
 
-  public Map<String, Integer> getCategoryTotalAmounts(Member member, LocalDate today) {
-    return queryFactory
-        .select(expense.category.name, expense.amount.sum())
+  @Override
+  public Map<Category, Integer> getTotalExpenseByDateRangeGroupByCategory(Member member,
+      LocalDate startDate, LocalDate endDate) {
+    return queryFactory.select(category, expense.amount.sum())
         .from(expense)
-        .where(expense.member.eq(member)
-            .and(expense.expendedAt.before(today)))
-        .groupBy(expense.category)
+        .leftJoin(expense.category, category)
+        .where(
+            expense.member.eq(member),
+            expense.isExcludedSum.isFalse(),
+            expense.expendedAt.between(startDate, endDate)
+        )
+        .groupBy(category.id)
+        .orderBy(category.id.asc())
         .fetch()
-        .stream()
-        .collect(Collectors.toMap(
-            tuple -> tuple.get(expense.category.name),
+        .stream().collect(Collectors.toMap(
+            tuple -> tuple.get(category),
             tuple -> tuple.get(expense.amount.sum())
         ));
   }
+
 
 }

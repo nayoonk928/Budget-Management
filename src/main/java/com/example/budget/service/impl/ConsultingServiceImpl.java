@@ -1,7 +1,9 @@
 package com.example.budget.service.impl;
 
+import com.example.budget.dto.res.DailyReportDto;
 import com.example.budget.dto.res.ExpenseRecommendDto;
 import com.example.budget.entity.Budget;
+import com.example.budget.entity.Category;
 import com.example.budget.entity.Expense;
 import com.example.budget.entity.Member;
 import com.example.budget.exception.CustomException;
@@ -11,13 +13,16 @@ import com.example.budget.repository.ExpenseRepository;
 import com.example.budget.service.ConsultingService;
 import com.example.budget.type.ConsultingMessage;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ConsultingServiceImpl implements ConsultingService {
@@ -32,7 +37,12 @@ public class ConsultingServiceImpl implements ConsultingService {
     LocalDate today = LocalDate.now();
     int expenseUntilYesterday = getExpenseUntilYesterday(member, today);
     int todayBudget = getTodayBudget(member, today, expenseUntilYesterday);
-    List<ExpenseRecommendDto.CategoryResDto> categoryResDtos = getCategoryRestAmount(member, today);
+    // 카테고리 별 남은 예산 가져오기
+    Map<Category, Integer> categoryRestAmounts = getCategoryRestAmount(member, today);
+
+    // 지출 카테고리별 추천 예산 분배
+    List<ExpenseRecommendDto.CategoryResDto> categoryResDtos =
+        distributeBudgetToCategories(categoryRestAmounts, todayBudget);
 
     if (today.getDayOfMonth() == 1) {
       return new ExpenseRecommendDto(todayBudget, ConsultingMessage.START.getMessage(),
@@ -44,12 +54,12 @@ public class ConsultingServiceImpl implements ConsultingService {
     int totalBudgetOfMonth = budgetRepository.getTotalAmountByMember(member);
     int budgetUntilYesterday =
         (totalBudgetOfMonth / yesterday.lengthOfMonth()) * yesterday.getDayOfMonth();
-    double risk = calculateBudgetExhaustionRate(totalBudgetOfMonth, budgetUntilYesterday, today);
+    int risk = calculateRisk(expenseUntilYesterday, budgetUntilYesterday);
 
     ConsultingMessage message;
-    if (risk > 0.8) {
+    if (risk > 120) {
       message = ConsultingMessage.HIGH_RISK;
-    } else if (risk > 0.6) {
+    } else if (risk > 100) {
       message = ConsultingMessage.MEDIUM_RISK;
     } else {
       message = ConsultingMessage.LOW_RISK;
@@ -58,15 +68,40 @@ public class ConsultingServiceImpl implements ConsultingService {
     return new ExpenseRecommendDto(todayBudget, message.getMessage(), categoryResDtos);
   }
 
-  private double calculateBudgetExhaustionRate(int totalBudgetOfMonth, int expenseUntilYesterday,
-      LocalDate today) {
-    // 예산 소진 속도 계산 (일일 평균 소비 예산)
-    double remainingBudget = totalBudgetOfMonth - expenseUntilYesterday;
-    double remainingDays = today.lengthOfMonth() - today.getDayOfMonth() + 1;
-    double dailyBudget = remainingBudget / remainingDays;
+  @Override
+  public DailyReportDto getDailyReport(Member member) {
+    LocalDate today = LocalDate.now();
+    int expenseUntilYesterday = getExpenseUntilYesterday(member, today);
+    int todayBudget = getTodayBudget(member, today, expenseUntilYesterday);
 
-    // 속도를 예산 대비로 환산
-    return dailyBudget / totalBudgetOfMonth;
+    // 오늘 지출 합계
+    int todayExpense = 0;
+    Map<Category, Integer> dailyTotalExpenseByCategory =
+        expenseRepository.getTotalExpenseByDateRangeGroupByCategory(member, today, today);
+    for (Map.Entry<Category, Integer> entry : dailyTotalExpenseByCategory.entrySet()) {
+
+    }
+
+    List<DailyReportDto.CategoryResDto> categoryResDtos = dailyTotalExpenseByCategory
+        .entrySet()
+        .stream()
+        .map(entry -> new DailyReportDto.CategoryResDto(
+            entry.getKey().getName(),
+            entry.getValue(),
+            calculateRisk(entry.getValue(), todayBudget)
+        ))
+        .collect(Collectors.toList());
+
+    return new DailyReportDto(todayBudget, todayExpense, 0, categoryResDtos);
+  }
+
+  // Risk 계산 메서드
+  private int calculateRisk(int expense, int budget) {
+    if (budget == 0) {
+      return 0; // 예산이 0이면 위험도를 0으로 설정
+    }
+
+    return (int) (((double) expense / budget) * 100);
   }
 
   private int getExpenseUntilYesterday(Member member, LocalDate today) {
@@ -94,21 +129,21 @@ public class ConsultingServiceImpl implements ConsultingService {
     }
   }
 
-  private List<ExpenseRecommendDto.CategoryResDto> getCategoryRestAmount(Member member,
+  private Map<Category, Integer> getCategoryRestAmount(Member member,
       LocalDate today) {
     List<Budget> budgets = budgetRepository.findByMember(member);
     List<Expense> expenses = getExpensesBeforeToday(member, today);
 
     // 카테고리별로 초기 예산을 저장하는 categoryBudgetMap 초기화
-    Map<String, Integer> categoryBudgetMap = budgets.stream()
-        .collect(Collectors.toMap(budget -> budget.getCategory().getName(), Budget::getAmount));
+    Map<Category, Integer> categoryBudgetMap = budgets.stream()
+        .collect(Collectors.toMap(budget -> budget.getCategory(), Budget::getAmount));
 
     // 카테고리별로 남은 예산을 저장하는 categoryRemainBudgetMap 초기화
-    Map<String, Integer> categoryRemainBudgetMap = new HashMap<>(categoryBudgetMap);
+    Map<Category, Integer> categoryRemainBudgetMap = new HashMap<>(categoryBudgetMap);
 
     // 지출을 기반으로 categoryRemainBudgetMap 업데이트
     for (Expense expense : expenses) {
-      String category = expense.getCategory().getName();
+      Category category = expense.getCategory();
 
       if (categoryRemainBudgetMap.containsKey(category)) {
         int categoryBudget = categoryRemainBudgetMap.get(category);
@@ -123,10 +158,25 @@ public class ConsultingServiceImpl implements ConsultingService {
       }
     }
 
-    // 업데이트된 categoryRemainBudgetMap을 기반으로 CategoryResDto 객체 생성
-    List<ExpenseRecommendDto.CategoryResDto> categoryResDtos = categoryRemainBudgetMap.entrySet()
+    return categoryRemainBudgetMap;
+  }
+
+  private List<ExpenseRecommendDto.CategoryResDto> distributeBudgetToCategories(
+      Map<Category, Integer> categoryRestAmounts, int todayBudget) {
+    int totalRestAmount = categoryRestAmounts.values().stream().mapToInt(Integer::intValue).sum();
+
+    // 각 카테고리별로 남은 예산 비율에 따라 추천 예산 분배
+    List<ExpenseRecommendDto.CategoryResDto> categoryResDtos = categoryRestAmounts.entrySet()
         .stream()
-        .map(entry -> new ExpenseRecommendDto.CategoryResDto(entry.getKey(), entry.getValue()))
+        .sorted(Comparator.comparing(entry -> entry.getKey().getId())) // 카테고리 ID로 정렬
+        .map(entry -> {
+          Category category = entry.getKey();
+          int restAmount = entry.getValue();
+          int recommendedBudget = (totalRestAmount != 0) ?
+              (int) (((double) restAmount / totalRestAmount) * todayBudget) : 0;
+
+          return new ExpenseRecommendDto.CategoryResDto(category.getName(), recommendedBudget);
+        })
         .collect(Collectors.toList());
 
     return categoryResDtos;
