@@ -26,13 +26,37 @@
 
 ## Skils
 
-언어 및 프레임워크: ![Static Badge](https://img.shields.io/badge/JAVA-17-blue) ![Static Badge](https://img.shields.io/badge/SpringBoot-3.1.5-green)<br/>
-데이터베이스: ![Static Badge](https://img.shields.io/badge/MySQL-blue)<br/>
-테스트 데이터베이스: ![Static Badge](https://img.shields.io/badge/H2--red) <br/>
-CI: ![Static Badge](https://img.shields.io/badge/Github-Actions-orange)  <br/>
+<div align=center> 
+<img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=java&logoColor=white">
+<img src="https://img.shields.io/badge/spring boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white">
+<img src="https://img.shields.io/badge/spring data jpa-6DB33F?style=for-the-badge&logo=spring&logoColor=white">
+<img src="https://img.shields.io/badge/junit5-25A162?style=for-the-badge&logo=junit5&logoColor=white">
+<img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white">
+<img src="https://img.shields.io/badge/h2-4479A1?style=for-the-badge">
 
 <br/>
 
+<img src="https://img.shields.io/badge/docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+<img src="https://img.shields.io/badge/Github Actions-2088FF?style=for-the-badge&logo=Githubactions&logoColor=white">
+<img src="https://img.shields.io/badge/AWS Ec2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white">
+<img src="https://img.shields.io/badge/AWS S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white">
+<img src="https://img.shields.io/badge/AWS RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white">
+
+<br/>
+
+<img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white">
+<img src="https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white">
+<img src="https://img.shields.io/badge/erd cloud-%23000000.svg?style=for-the-badge&logo=diagrams.net&logoColor=white">
+</div>
+
+<br/>
+
+## 요구사항 분석 - Notion
+[요구사항 분석 - Link](https://foil-cobra-d79.notion.site/bfc46da8687d4ab8a68da3087e158476?pvs=4)
+## 이슈 관리 - Github
+![이슈관리](doc/issues.png)
+## ERD
+![ERD](doc/ERD.png)
 
 ## Running Tests
 
@@ -41,6 +65,10 @@ CI: ![Static Badge](https://img.shields.io/badge/Github-Actions-orange)  <br/>
 
 <br/>
 
+## AWS 배포
+> S3 ScreenShot ![s3_result](doc/S3.png)
+> EC2 ScreenShot ![ec2_result](doc/ec2.png)
+> Github Actions ScreenShot ![githubactions_result](doc/githubactions.png)
 
 ## API Reference
 
@@ -709,9 +737,41 @@ Authentication: Bearer {JWT}
 
 
 ## 구현과정(설계 및 의도)
+<details>
+<summary>평균 비율 계산</summary>
 
+- 각 카테고리별로 전체 사용자들이 얼만큼의 예산을 분배했는지 계산해야 했다.
+- 따라서, 각 사용자가 예산을 설정할 때 해당 사용자의 카테고리별 비율을 저장하였다.
+  - 이 때문에, 예산을 분배하지 않은 카테고리도 amount = 0, rate = 0.0으로 저장한다.
+- 사용자가 예산을 설정하거나 수정하면 예산 테이블을 탐색하여 카테고리의 평균 비율을 계산하고 카테고리 테이블에 저장한다.
+  - 이 부분은 비동기적으로 처리되도록 수정될 예정
+</details>
 
 ## TIL 및 회고
+<details>
+<summary>Java Record - click</summary>
 
+- JDK 16 부터 도입된 record 클래스 형식을 활용해보았다.
+- 클래스명 뒤에 소괄호로 클래스의 필드를 선언한다. (final)
+- 필드 정의, 생성자, equals(), hashCode(), toString()을 자동으로 생성해주기 때문에 코드가 간결해진다.
+- @NotBlank 등 필드 어노테이션도 그대로 사용할 수 있다.
+```java
+public record MemberSignUpReqDto(
+    @NotBlank(message = "계정은 필수 항목 입니다.")
+    String account,
+    @NotBlank(message = "비밀번호는 필수 항목 입니다.")
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{6,}$",
+        message = "비밀번호는 알파벳, 숫자, 특수문자를 각각 하나 이상 포함하여 6자 이상으로 설정해주세요.")
+    String password,
+    @NotBlank(message = "닉네임은 필수 항목 입니다.")
+    @Size(min = 2, max = 10, message = "닉네임은 2자 이상 10자 이하로 입력해 주세요.")
+    String nickname,
+    Boolean notification
+){
+
+}
+```
+</details>
 
 ## References
+- [Github actions, AWS CodeDeploy로 Spring boot 배포 자동화하기](https://velog.io/@juhyeon1114/%EC%8B%A4%EC%A0%84-Github-actions-AWS-Code-deploy%EB%A1%9C-Spring-boot-%EB%B0%B0%ED%8F%AC-%EC%9E%90%EB%8F%99%ED%99%94%ED%95%98%EA%B8%B0)
