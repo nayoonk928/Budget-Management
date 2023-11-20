@@ -3,10 +3,7 @@ name: 프로젝트 빌드 및 업로드
 on:
   push:
     branches:
-      - develop
-  pull_request:
-    branches:
-      - develop
+      - main
 
 env:
   AWS_REGION: ap-northeast-2
