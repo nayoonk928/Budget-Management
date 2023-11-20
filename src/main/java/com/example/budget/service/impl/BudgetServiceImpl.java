@@ -12,10 +12,8 @@ import com.example.budget.exception.CustomException;
 import com.example.budget.exception.ErrorCode;
 import com.example.budget.repository.BudgetRepository;
 import com.example.budget.repository.CategoryRepository;
-import com.example.budget.repository.MemberRepository;
 import com.example.budget.service.BudgetService;
 import com.example.budget.type.CategoryType;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +32,6 @@ public class BudgetServiceImpl implements BudgetService {
 
   private final BudgetRepository budgetRepository;
   private final CategoryRepository categoryRepository;
-  private final MemberRepository memberRepository;
 
   /**
    * 사용자 예산 설정
