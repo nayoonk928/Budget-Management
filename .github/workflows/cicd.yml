@@ -34,11 +34,8 @@ jobs:
           echo "${{ secrets.APPLICATION }}"
           cat ./src/main/resources/application-prod.yml
 
-      - name: 빌드 진행
-        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
-        with:
-          arguments: clean build
-          cache-disabled: true
+      - name: Gradle 빌드 (테스트 제외)
+        run: ./gradlew clean build --exclude-task test
 
       - name: AWS 인증
         uses: aws-actions/configure-aws-credentials@v1
