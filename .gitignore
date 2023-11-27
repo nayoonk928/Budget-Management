@@ -39,5 +39,7 @@ out/
 ### Setting ###
 src/main/resources/*.env
 src/main/resources/*.ddl
+src/main/resources/*.sql
 application-dev.yml
 /docker/
+/src/main/generated/

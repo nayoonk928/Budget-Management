@@ -6,10 +6,12 @@
 
 ## Table of Contents
 - [개요](#개요)
-- [Skils](#skils)
-- [Running Tests](#running-tests)
-- [API Reference](#api-reference)
+- [Skills](#skills)
 - [프로젝트 진행 및 이슈 관리](#프로젝트-진행-및-이슈-관리)
+- [ERD](#erd)
+- [Running Tests](#running-tests)
+- [AWS 배포](#aws-배포)
+- [API Reference](#api-reference)
 - [구현과정(설계 및 의도)](#구현과정(설계-및-의도))
 - [TIL 및 회고](#til-및-회고)
 - [References](#references)
@@ -24,7 +26,7 @@
 <br/>
 
 
-## Skils
+## Skills
 
 <div align=center> 
 <img src="https://img.shields.io/badge/java-007396?style=for-the-badge&logo=java&logoColor=white">
@@ -65,10 +67,11 @@
 
 <br/>
 
-## AWS 배포
+## AWS 배포 
+
 > S3 ScreenShot ![s3_result](doc/S3.png)
 > EC2 ScreenShot ![ec2_result](doc/ec2.png)
-> Github Actions ScreenShot ![githubactions_result](doc/githubactions.png)
+> GitHub Actions ScreenShot ![githubactions_result](doc/githubactions.png)
 
 ## API Reference
 
@@ -737,6 +740,7 @@ Authentication: Bearer {JWT}
 
 
 ## 구현과정(설계 및 의도)
+
 <details>
 <summary>평균 비율 계산</summary>
 
@@ -748,6 +752,7 @@ Authentication: Bearer {JWT}
 </details>
 
 ## TIL 및 회고
+
 <details>
 <summary>Java Record - click</summary>
 
