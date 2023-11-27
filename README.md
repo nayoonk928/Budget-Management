@@ -53,6 +53,10 @@
 
 <br/>
 
+## 프로젝트 진행 및 이슈 관리
+![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white)
+<img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white">
+
 ## 요구사항 분석 - Notion
 [요구사항 분석 - Link](https://foil-cobra-d79.notion.site/bfc46da8687d4ab8a68da3087e158476?pvs=4)
 ## 이슈 관리 - Github
@@ -729,15 +733,6 @@ Authentication: Bearer {JWT}
 </details>
 
 <br/>
-
-
-## 프로젝트 진행 및 이슈 관리
-
-![Notion](https://img.shields.io/badge/Notion-%23000000.svg?style=for-the-badge&logo=notion&logoColor=white)
-<img src="https://img.shields.io/badge/Github-181717?style=for-the-badge&logo=Github&logoColor=white">
-
-<br/>
-
 
 ## 구현과정(설계 및 의도)
 
